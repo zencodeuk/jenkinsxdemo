@@ -1,0 +1,31 @@
+apiVersion: skaffold/v1alpha2
+kind: Config
+build:
+  tagPolicy:
+    envTemplate:
+      template: "{{.DOCKER_REGISTRY}}/zencodeuk/jenkinsxdemo:{{.VERSION}}"
+  artifacts:
+  - imageName: changeme
+    workspace: .
+    docker: {}
+  local: {}
+deploy:
+  kubectl:
+    manifests:
+profiles:
+- name: dev
+  build:
+    tagPolicy:
+      envTemplate:
+        template: "{{.DOCKER_REGISTRY}}/zencodeuk/jenkinsxdemo:{{.DIGEST_HEX}}"
+    artifacts:
+    - docker: {}
+    local: {}
+  deploy:
+    helm:
+      releases:
+      - name: jenkinsxdemo
+        chartPath: charts/jenkinsxdemo
+        setValueTemplates:
+          image.repository: "{{.DOCKER_REGISTRY}}/zencodeuk/jenkinsxdemo"
+          image.tag: "{{.DIGEST_HEX}}"
